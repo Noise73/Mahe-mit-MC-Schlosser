@@ -22,6 +22,9 @@
             width: 80%;
             padding: 8px;
             margin: 10px 0;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s;
         }
         button {
             padding: 10px;
@@ -32,43 +35,77 @@
             margin-top: 20px;
             border: 1px solid #ccc;
         }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Kreisring Rechner</h2>
-        <label>Äußerer Radius (r₁): <input type="number" id="outerRadius"></label><br>
-        <label>Innerer Radius (r₂): <input type="number" id="innerRadius"></label><br>
-        <label>Breite des Rings (b): <input type="number" id="ringWidth"></label><br>
-        <button onclick="calculate()">Berechnen</button>
+        <label>Äußerer Radius (r₁): <input type="number" id="outerRadius" oninput="autoCalculate()"></label><br>
+        <label>Innerer Radius (r₂): <input type="number" id="innerRadius" oninput="autoCalculate()"></label><br>
+        <label>Breite des Rings (b): <input type="number" id="ringWidth" oninput="autoCalculate()"></label><br>
+        <p class="error-message" id="error-message">Der innere Radius ist größer als der äußere Radius. Bitte korrigieren!</p>
         <button onclick="resetFields()">Zurücksetzen</button>
         <h3>Ergebnis</h3>
         <p>Fläche des Kreisrings: <span id="area">-</span> cm²</p>
         <canvas id="canvas" width="300" height="300"></canvas>
     </div>
     <script>
-        function calculate() {
+        function autoCalculate() {
             let r1 = parseFloat(document.getElementById("outerRadius").value);
             let r2 = parseFloat(document.getElementById("innerRadius").value);
             let b = parseFloat(document.getElementById("ringWidth").value);
+            let errorMessage = document.getElementById("error-message");
+            let filled = [!isNaN(r1), !isNaN(r2), !isNaN(b)].filter(Boolean).length;
             
-            if (!isNaN(r1) && !isNaN(b)) {
-                r2 = r1 - b;
-                document.getElementById("innerRadius").value = r2;
-            } else if (!isNaN(r2) && !isNaN(b)) {
-                r1 = r2 + b;
-                document.getElementById("outerRadius").value = r1;
-            } else if (!isNaN(r1) && !isNaN(r2)) {
-                b = r1 - r2;
-                document.getElementById("ringWidth").value = b;
+            if (filled === 2) {
+                if (!isNaN(r1) && !isNaN(b)) {
+                    r2 = r1 - b;
+                    document.getElementById("innerRadius").value = r2;
+                } else if (!isNaN(r2) && !isNaN(b)) {
+                    r1 = r2 + b;
+                    document.getElementById("outerRadius").value = r1;
+                } else if (!isNaN(r1) && !isNaN(r2)) {
+                    b = r1 - r2;
+                    document.getElementById("ringWidth").value = b;
+                }
             }
             
-            if (!isNaN(r1) && !isNaN(r2) && r1 > r2) {
-                let area = Math.PI * (r1 * r1 - r2 * r2);
-                document.getElementById("area").textContent = area.toFixed(2);
-                drawRing(r1, r2);
+            validateInput();
+            
+            if (!isNaN(r1) && !isNaN(r2)) {
+                if (r1 > r2) {
+                    errorMessage.style.display = "none";
+                    let area = Math.PI * (r1 * r1 - r2 * r2);
+                    document.getElementById("area").textContent = area.toFixed(2);
+                    drawRing(r1, r2);
+                } else {
+                    errorMessage.style.display = "block";
+                    document.getElementById("area").textContent = "Fehler: r₁ muss größer als r₂ sein";
+                }
             } else {
+                errorMessage.style.display = "none";
                 document.getElementById("area").textContent = "-";
+            }
+        }
+        
+        function validateInput() {
+            let r1 = parseFloat(document.getElementById("outerRadius").value);
+            let r2 = parseFloat(document.getElementById("innerRadius").value);
+            let innerRadiusField = document.getElementById("innerRadius");
+            
+            if (!isNaN(r1) && !isNaN(r2)) {
+                if (r2 >= r1) {
+                    innerRadiusField.style.borderColor = "red";
+                } else {
+                    innerRadiusField.style.borderColor = "green";
+                }
+            } else {
+                innerRadiusField.style.borderColor = "#ccc";
             }
         }
         
@@ -77,6 +114,8 @@
             document.getElementById("innerRadius").value = "";
             document.getElementById("ringWidth").value = "";
             document.getElementById("area").textContent = "-";
+            document.getElementById("error-message").style.display = "none";
+            document.getElementById("innerRadius").style.borderColor = "#ccc";
             let canvas = document.getElementById("canvas");
             let ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
