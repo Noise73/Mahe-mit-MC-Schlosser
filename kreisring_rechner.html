@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreisring Rechner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 80%;
+            padding: 8px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        canvas {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Kreisring Rechner</h2>
+        <label>Äußerer Radius (r₁): <input type="number" id="outerRadius"></label><br>
+        <label>Innerer Radius (r₂): <input type="number" id="innerRadius"></label><br>
+        <label>Breite des Rings (b): <input type="number" id="ringWidth"></label><br>
+        <button onclick="calculate()">Berechnen</button>
+        <button onclick="resetFields()">Zurücksetzen</button>
+        <h3>Ergebnis</h3>
+        <p>Fläche des Kreisrings: <span id="area">-</span> cm²</p>
+        <canvas id="canvas" width="300" height="300"></canvas>
+    </div>
+    <script>
+        function calculate() {
+            let r1 = parseFloat(document.getElementById("outerRadius").value);
+            let r2 = parseFloat(document.getElementById("innerRadius").value);
+            let b = parseFloat(document.getElementById("ringWidth").value);
+            
+            if (!isNaN(r1) && !isNaN(b)) {
+                r2 = r1 - b;
+                document.getElementById("innerRadius").value = r2;
+            } else if (!isNaN(r2) && !isNaN(b)) {
+                r1 = r2 + b;
+                document.getElementById("outerRadius").value = r1;
+            } else if (!isNaN(r1) && !isNaN(r2)) {
+                b = r1 - r2;
+                document.getElementById("ringWidth").value = b;
+            }
+            
+            if (!isNaN(r1) && !isNaN(r2) && r1 > r2) {
+                let area = Math.PI * (r1 * r1 - r2 * r2);
+                document.getElementById("area").textContent = area.toFixed(2);
+                drawRing(r1, r2);
+            } else {
+                document.getElementById("area").textContent = "-";
+            }
+        }
+        
+        function resetFields() {
+            document.getElementById("outerRadius").value = "";
+            document.getElementById("innerRadius").value = "";
+            document.getElementById("ringWidth").value = "";
+            document.getElementById("area").textContent = "-";
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        function drawRing(r1, r2) {
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            let scale = 100 / Math.max(r1, 1);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, r1 * scale, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, r2 * scale, 0, 2 * Math.PI, true);
+            ctx.fillStyle = "lightblue";
+            ctx.fill();
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
